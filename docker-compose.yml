@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile # 上記で作成したDockerfileのパス
+    container_name: laravel_web
+    ports:
+      - '80:80' # Apache のポート
+      - '5173:5173' # Vite の開発サーバーポート (フロントエンド開発時)
+    volumes:
+      - .:/var/www/html # プロジェクトファイルをコンテナにマウント
+    working_dir: /var/www/html
+    # dbサービスに依存関係を設定
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    # 環境変数などDBの設定を記述
+
+# ネットワーク設定（任意）
+# networks:
+#   laravel-network:
+#     driver: bridge
