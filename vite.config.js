@@ -10,11 +10,21 @@ export default defineConfig({
         }),
         react(),
     ],
-// ★★★ この server オプションを追加/編集 ★★★
     server: {
-        host: '0.0.0.0', // すべてのネットワークインターフェースからの接続を許可
+        host: true,
+        port: 5173,
+        https: false,
+        hmr: {
+            host: '192.168.1.23',
+            protocol: 'http'
+        },
         watch: {
-            usePolling: true, // Docker環境でファイルの変更を検知しやすくするための設定
+            usePolling: true
+        },
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+            credentials: true
         },
     },
 });

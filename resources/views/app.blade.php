@@ -13,7 +13,13 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
+        @php
+        $assetUrl = env('ASSET_URL');
+        if (env('APP_ENV') === 'local' && !empty($_SERVER['SERVER_ADDR'])) {
+            $assetUrl = 'http://' . $_SERVER['SERVER_ADDR'] . ':5173';
+        }
+        @endphp
+        @vite(['resources/js/app.tsx'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
