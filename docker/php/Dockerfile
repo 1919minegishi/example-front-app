@@ -23,6 +23,10 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
 # Composer のインストール
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
+# 起動スクリプトのコピーと実行権限の付与
+COPY ./docker/php/start-apache.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start-apache.sh
+
 # Apache のドキュメントルートを /var/www/public に設定
 # （Laravelのpublicディレクトリを指すようにします）
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
@@ -31,3 +35,6 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 # rewriteモジュールの有効化 (Laravelのルーティングに必要)
 RUN a2enmod rewrite
+
+# コンテナ起動時にApacheを起動
+CMD ["/usr/local/bin/start-apache.sh"]
