@@ -7,17 +7,27 @@ export interface ValidationRules {
 }
 
 /**
- * Email validation rule
+ * Email format validation rule (does not check if required)
  */
-export const emailRule = (value: string): string | null => {
+export const emailFormatRule = (value: string): string | null => {
     if (!value) {
-        return 'Email is required';
+        return null; // Allow empty, use requiredRule separately if needed
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
         return 'Please enter a valid email address';
     }
     return null;
+};
+
+/**
+ * Email validation rule (combines required and format validation for convenience)
+ */
+export const emailRule = (value: string): string | null => {
+    if (!value) {
+        return 'Email is required';
+    }
+    return emailFormatRule(value);
 };
 
 /**
@@ -66,7 +76,7 @@ export const passwordConfirmationRule = (password: string) => (confirmation: str
  * @param rules - Validation rules for each field
  * @returns Object containing validation errors for each field
  */
-export const validateForm = (data: Record<string, any>, rules: ValidationRules): ValidationErrors => {
+export const validateForm = <T extends Record<string, unknown>>(data: T, rules: ValidationRules): ValidationErrors => {
     const errors: ValidationErrors = {};
 
     Object.keys(rules).forEach((field) => {
