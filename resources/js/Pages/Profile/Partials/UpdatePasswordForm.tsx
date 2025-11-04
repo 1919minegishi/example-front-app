@@ -1,10 +1,11 @@
-import { useRef, FormEventHandler } from 'react';
+import { useRef, FormEventHandler, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
+import { validateForm, requiredRule, minLengthRule, passwordConfirmationRule, ValidationErrors } from '@/utils/validation';
 
 export default function UpdatePasswordForm({ className = '' }: { className?: string }) {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -16,24 +17,39 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         password_confirmation: '',
     });
 
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
     const updatePassword: FormEventHandler = (e) => {
         e.preventDefault();
 
-        put(route('password.update'), {
-            preserveScroll: true,
-            onSuccess: () => reset(),
-            onError: (errors) => {
-                if (errors.password) {
-                    reset('password', 'password_confirmation');
-                    passwordInput.current?.focus();
-                }
+        // Validate form before submission
+        const rules = {
+            current_password: [requiredRule('Current password')],
+            password: [requiredRule('New password'), minLengthRule(8, 'New password')],
+            password_confirmation: [requiredRule('Password confirmation'), passwordConfirmationRule(data.password)],
+        };
 
-                if (errors.current_password) {
-                    reset('current_password');
-                    currentPasswordInput.current?.focus();
-                }
-            },
-        });
+        const validationErrs = validateForm(data, rules);
+        setValidationErrors(validationErrs);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(validationErrs).length === 0) {
+            put(route('password.update'), {
+                preserveScroll: true,
+                onSuccess: () => reset(),
+                onError: (errors) => {
+                    if (errors.password) {
+                        reset('password', 'password_confirmation');
+                        passwordInput.current?.focus();
+                    }
+
+                    if (errors.current_password) {
+                        reset('current_password');
+                        currentPasswordInput.current?.focus();
+                    }
+                },
+            });
+        }
     };
 
     return (
@@ -60,7 +76,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                         autoComplete="current-password"
                     />
 
-                    <InputError message={errors.current_password} className="mt-2" />
+                    <InputError message={validationErrors.current_password || errors.current_password} className="mt-2" />
                 </div>
 
                 <div>
@@ -76,7 +92,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                         autoComplete="new-password"
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={validationErrors.password || errors.password} className="mt-2" />
                 </div>
 
                 <div>
@@ -91,7 +107,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                         autoComplete="new-password"
                     />
 
-                    <InputError message={errors.password_confirmation} className="mt-2" />
+                    <InputError message={validationErrors.password_confirmation || errors.password_confirmation} className="mt-2" />
                 </div>
 
                 <div className="flex items-center gap-4">

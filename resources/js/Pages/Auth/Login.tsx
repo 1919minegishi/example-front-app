@@ -1,4 +1,4 @@
-import { useEffect, FormEventHandler } from 'react';
+import { useEffect, FormEventHandler, useState } from 'react';
 import Checkbox from '@/Components/Checkbox';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { validateForm, requiredRule, emailRule, ValidationErrors } from '@/utils/validation';
 
 export default function Login({ status, canResetPassword }: { status?: string, canResetPassword: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -13,6 +14,8 @@ export default function Login({ status, canResetPassword }: { status?: string, c
         password: '',
         remember: false,
     });
+
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     useEffect(() => {
         return () => {
@@ -23,7 +26,19 @@ export default function Login({ status, canResetPassword }: { status?: string, c
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('login'));
+        // Validate form before submission
+        const rules = {
+            email: [emailRule],
+            password: [requiredRule('Password')],
+        };
+
+        const errors = validateForm(data, rules);
+        setValidationErrors(errors);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(errors).length === 0) {
+            post(route('login'));
+        }
     };
 
     return (
@@ -47,7 +62,7 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                         onChange={(e) => setData('email', e.target.value)}
                     />
 
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={validationErrors.email || errors.email} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
@@ -63,7 +78,7 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={validationErrors.password || errors.password} className="mt-2" />
                 </div>
 
                 <div className="block mt-4">

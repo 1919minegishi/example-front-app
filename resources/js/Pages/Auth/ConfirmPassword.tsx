@@ -1,15 +1,18 @@
-import { useEffect, FormEventHandler } from 'react';
+import { useEffect, FormEventHandler, useState } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
+import { validateForm, requiredRule, ValidationErrors } from '@/utils/validation';
 
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({
         password: '',
     });
+
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     useEffect(() => {
         return () => {
@@ -20,7 +23,18 @@ export default function ConfirmPassword() {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('password.confirm'));
+        // Validate form before submission
+        const rules = {
+            password: [requiredRule('Password')],
+        };
+
+        const errors = validateForm(data, rules);
+        setValidationErrors(errors);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(errors).length === 0) {
+            post(route('password.confirm'));
+        }
     };
 
     return (
@@ -45,7 +59,7 @@ export default function ConfirmPassword() {
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={validationErrors.password || errors.password} className="mt-2" />
                 </div>
 
                 <div className="flex items-center justify-end mt-4">
