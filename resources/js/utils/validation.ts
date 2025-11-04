@@ -44,7 +44,7 @@ export const requiredRule = (fieldName: string) => (value: string): string | nul
  * Minimum length validation rule
  */
 export const minLengthRule = (min: number, fieldName: string) => (value: string): string | null => {
-    if (value && value.length < min) {
+    if (value != null && value.length < min) {
         return `${fieldName} must be at least ${min} characters`;
     }
     return null;
@@ -54,7 +54,7 @@ export const minLengthRule = (min: number, fieldName: string) => (value: string)
  * Maximum length validation rule
  */
 export const maxLengthRule = (max: number, fieldName: string) => (value: string): string | null => {
-    if (value && value.length > max) {
+    if (value != null && value.length > max) {
         return `${fieldName} must not exceed ${max} characters`;
     }
     return null;
@@ -64,6 +64,9 @@ export const maxLengthRule = (max: number, fieldName: string) => (value: string)
  * Password confirmation validation rule
  */
 export const passwordConfirmationRule = (password: string) => (confirmation: string): string | null => {
+    if (!confirmation) {
+        return null; // Allow empty, use requiredRule separately if needed
+    }
     if (confirmation !== password) {
         return 'Password confirmation does not match';
     }
