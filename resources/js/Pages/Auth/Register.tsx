@@ -1,10 +1,11 @@
-import { useEffect, FormEventHandler } from 'react';
+import { useEffect, FormEventHandler, useState } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { validateForm, requiredRule, emailRule, minLengthRule, passwordConfirmationRule, ValidationErrors } from '@/utils/validation';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -13,6 +14,8 @@ export default function Register() {
         password: '',
         password_confirmation: '',
     });
+
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     useEffect(() => {
         return () => {
@@ -23,7 +26,21 @@ export default function Register() {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('register'));
+        // Validate form before submission
+        const rules = {
+            name: [requiredRule('Name'), minLengthRule(2, 'Name')],
+            email: [emailRule],
+            password: [requiredRule('Password'), minLengthRule(8, 'Password')],
+            password_confirmation: [requiredRule('Password confirmation'), passwordConfirmationRule(data.password)],
+        };
+
+        const errors = validateForm(data, rules);
+        setValidationErrors(errors);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(errors).length === 0) {
+            post(route('register'));
+        }
     };
 
     return (
@@ -45,7 +62,7 @@ export default function Register() {
                         required
                     />
 
-                    <InputError message={errors.name} className="mt-2" />
+                    <InputError message={validationErrors.name || errors.name} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
@@ -62,7 +79,7 @@ export default function Register() {
                         required
                     />
 
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={validationErrors.email || errors.email} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
@@ -79,7 +96,7 @@ export default function Register() {
                         required
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={validationErrors.password || errors.password} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
@@ -96,7 +113,7 @@ export default function Register() {
                         required
                     />
 
-                    <InputError message={errors.password_confirmation} className="mt-2" />
+                    <InputError message={validationErrors.password_confirmation || errors.password_confirmation} className="mt-2" />
                 </div>
 
                 <div className="flex items-center justify-end mt-4">

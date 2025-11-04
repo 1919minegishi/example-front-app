@@ -4,8 +4,9 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
 import { PageProps } from '@/types';
+import { validateForm, requiredRule, emailRule, minLengthRule, ValidationErrors } from '@/utils/validation';
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }: { mustVerifyEmail: boolean, status?: string, className?: string }) {
     const user = usePage<PageProps>().props.auth.user;
@@ -15,10 +16,24 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
         email: user.email,
     });
 
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'));
+        // Validate form before submission
+        const rules = {
+            name: [requiredRule('Name'), minLengthRule(2, 'Name')],
+            email: [emailRule],
+        };
+
+        const errors = validateForm(data, rules);
+        setValidationErrors(errors);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(errors).length === 0) {
+            patch(route('profile.update'));
+        }
     };
 
     return (
@@ -45,7 +60,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         autoComplete="name"
                     />
 
-                    <InputError className="mt-2" message={errors.name} />
+                    <InputError className="mt-2" message={validationErrors.name || errors.name} />
                 </div>
 
                 <div>
@@ -61,7 +76,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         autoComplete="username"
                     />
 
-                    <InputError className="mt-2" message={errors.email} />
+                    <InputError className="mt-2" message={validationErrors.email || errors.email} />
                 </div>
 
                 {mustVerifyEmail && user.email_verified_at === null && (

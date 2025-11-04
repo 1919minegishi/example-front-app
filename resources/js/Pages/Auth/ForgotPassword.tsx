@@ -3,17 +3,31 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
+import { validateForm, emailRule, ValidationErrors } from '@/utils/validation';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
 
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('password.email'));
+        // Validate form before submission
+        const rules = {
+            email: [emailRule],
+        };
+
+        const errors = validateForm(data, rules);
+        setValidationErrors(errors);
+
+        // Only submit if there are no validation errors
+        if (Object.keys(errors).length === 0) {
+            post(route('password.email'));
+        }
     };
 
     return (
@@ -38,7 +52,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     onChange={(e) => setData('email', e.target.value)}
                 />
 
-                <InputError message={errors.email} className="mt-2" />
+                <InputError message={validationErrors.email || errors.email} className="mt-2" />
 
                 <div className="flex items-center justify-end mt-4">
                     <PrimaryButton className="ms-4" disabled={processing}>
