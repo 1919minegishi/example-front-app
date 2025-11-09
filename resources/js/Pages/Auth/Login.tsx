@@ -33,6 +33,13 @@ export default function Login() {
                 <div>
                     <InputLabel htmlFor="email" value="メールアドレス" />
 
+                    {/* 
+                        メールアドレスのバリデーションチェックについて:
+                        type="email" 属性により、ブラウザの組み込みHTML5バリデーションが実行されます。
+                        「aaa」のような @記号のない文字列を入力して送信すると、
+                        ブラウザが自動的に「メールアドレスに「＠」を挿入してください。」というメッセージを表示します。
+                        このバリデーションは、JavaScriptコードではなく、ブラウザによって実行されます。
+                    */}
                     <TextInput
                         id="email"
                         type="email"
